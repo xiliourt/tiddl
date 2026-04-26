@@ -68,7 +68,7 @@ def login(
                         loaded_auth_data.country_code = auth.user.countryCode
                     
                     save_auth_data(loaded_auth_data)
-                    status.console.print(f"[bold green]Logged in to {name} account!")
+                    status.console.print(f"[bold green]Logged in with {name} auth!")
                     break
 
                 except AuthClientError as e:
