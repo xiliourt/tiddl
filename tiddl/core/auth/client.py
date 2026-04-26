@@ -6,18 +6,28 @@ from typing import Any, TypeAlias
 from tiddl.core.auth.exceptions import AuthClientError
 
 
-def get_auth_credentials() -> tuple[str, str]:
+def get_auth_credentials(secondary: bool = False) -> tuple[str, str]:
     ENV_KEY = "TIDDL_AUTH"
+    SECONDARY_ENV_KEY = "TIDDL_AUTH_SECONDARY"
 
-    client_id, client_secret = (
-        base64.b64decode(
-            "ZlgySnhkbW50WldLMGl4VDsxTm45QWZEQWp4cmdKRkpiS05XTGVBeUtHVkdtSU51WFBQTEhWWEF2eEFnPQ=="
+    if secondary:
+        client_id, client_secret = (
+            base64.b64decode(
+                "NE4zbjZRMXg5NUxMNUs3cDtvS09YZkpXMzcxY1g2eGFaMFB5aGdHTkJkTkxsQlpkNEFLS1lvdWdNamlrPQ=="
+            )
+            .decode()
+            .split(";")
         )
-        .decode()
-        .split(";")
-    )
-
-    env_value = environ.get(ENV_KEY, None)
+        env_value = environ.get(SECONDARY_ENV_KEY, None)
+    else:
+        client_id, client_secret = (
+            base64.b64decode(
+                "ZlgySnhkbW50WldLMGl4VDsxTm45QWZEQWp4cmdKRkpiS05XTGVBeUtHVkdtSU51WFBQTEhWWEF2eEFnPQ=="
+            )
+            .decode()
+            .split(";")
+        )
+        env_value = environ.get(ENV_KEY, None)
 
     if env_value:
         client_id, client_secret = env_value.split(";")
@@ -27,16 +37,21 @@ def get_auth_credentials() -> tuple[str, str]:
 
 AUTH_URL = "https://auth.tidal.com/v1/oauth2"
 CLIENT_ID, CLIENT_SECRET = get_auth_credentials()
+SECONDARY_CLIENT_ID, SECONDARY_CLIENT_SECRET = get_auth_credentials(secondary=True)
 
 JSON: TypeAlias = dict[str, Any]
 
 
 class AuthClient:
 
-    def __init__(self) -> None:
+    def __init__(self, secondary: bool = False) -> None:
         self.auth_url = AUTH_URL
-        self.client_id = CLIENT_ID
-        self.client_secret = CLIENT_SECRET
+        if secondary:
+            self.client_id = SECONDARY_CLIENT_ID
+            self.client_secret = SECONDARY_CLIENT_SECRET
+        else:
+            self.client_id = CLIENT_ID
+            self.client_secret = CLIENT_SECRET
 
     def get_device_auth(self) -> JSON:
         res = request(

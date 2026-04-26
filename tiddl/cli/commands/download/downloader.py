@@ -144,6 +144,23 @@ class Downloader:
                     stream = self.api.get_track_stream(
                         track_id=item.id, quality=self.track_quality
                     )
+
+                    # if 320kbps is returned but max or high is set, try with secondary auth
+                    if (
+                        stream.audioQuality == "HIGH"
+                        and self.track_quality in ["LOSSLESS", "HI_RES_LOSSLESS"]
+                        and self.api.secondary_client
+                    ):
+                        log.debug(f"Retrying with secondary auth for {item.id}")
+                        secondary_stream = self.api.get_track_stream(
+                            track_id=item.id,
+                            quality=self.track_quality,
+                            use_secondary=True,
+                        )
+                        if secondary_stream.audioQuality != "HIGH":
+                            stream = secondary_stream
+                            log.debug(f"Secondary auth provided better quality: {stream.audioQuality}")
+
                 except ApiError as e:
                     log.error(f"{item.id=} {e=}")
                     self.rich_output.console.print(

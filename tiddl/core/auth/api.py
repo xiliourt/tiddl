@@ -7,8 +7,8 @@ from tiddl.core.auth.models import (
 
 
 class AuthAPI:
-    def __init__(self, client: AuthClient | None = None) -> None:
-        self._client = client or AuthClient()
+    def __init__(self, client: AuthClient | None = None, secondary: bool = False) -> None:
+        self._client = client or AuthClient(secondary=secondary)
 
     def get_device_auth(self) -> AuthDeviceResponse:
         json_data = self._client.get_device_auth()

@@ -52,11 +52,19 @@ class Limits:
 
 class TidalAPI:
     client: TidalClient
+    secondary_client: TidalClient | None
     user_id: str
     country_code: str
 
-    def __init__(self, client: TidalClient, user_id: str, country_code: str) -> None:
+    def __init__(
+        self,
+        client: TidalClient,
+        user_id: str,
+        country_code: str,
+        secondary_client: TidalClient | None = None,
+    ) -> None:
         self.client = client
+        self.secondary_client = secondary_client
         self.user_id = user_id
         self.country_code = country_code
 
@@ -222,8 +230,13 @@ class TidalAPI:
             expire_after=3600,
         )
 
-    def get_track_stream(self, track_id: ID, quality: TrackQuality):
-        return self.client.fetch(
+    def get_track_stream(
+        self, track_id: ID, quality: TrackQuality, use_secondary: bool = False
+    ):
+        client = (
+            self.secondary_client if use_secondary and self.secondary_client else self.client
+        )
+        return client.fetch(
             TrackStream,
             f"tracks/{track_id}/playbackinfopostpaywall",
             {
